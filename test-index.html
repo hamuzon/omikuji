@@ -131,6 +131,25 @@
   const waitTime = 300000; // 5分(ミリ秒)
   let countdownInterval;
 
+  window.addEventListener('load', () => {
+    const lastDraw = localStorage.getItem('lastDrawTime');
+    const now = Date.now();
+
+    if (lastDraw && now - lastDraw < waitTime) {
+      // 前回結果表示
+      const savedResult = localStorage.getItem('lastResult');
+      const savedComment = localStorage.getItem('lastComment');
+      const savedTimestamp = localStorage.getItem('lastTimestamp');
+
+      if (savedResult && savedComment && savedTimestamp) {
+        showResult(savedResult, savedComment, savedTimestamp);
+      }
+
+      // カウントダウン開始
+      showCountdown(waitTime - (now - lastDraw));
+    }
+  });
+
   async function drawOmikuji() {
     const button = document.querySelector('button');
     const resultEl = document.getElementById('result');
@@ -163,13 +182,13 @@
         hour: '2-digit', minute: '2-digit', second: '2-digit'
       });
 
-      resultEl.innerHTML = `
-        <div class="kanji">${data.result}</div>
-        <div class="comment">${data.comment}</div>
-        <div class="timestamp">更新時間 (JST): ${formattedTime}</div>
-      `;
+      showResult(data.result, data.comment, formattedTime);
 
+      // 保存
       localStorage.setItem('lastDrawTime', now);
+      localStorage.setItem('lastResult', data.result);
+      localStorage.setItem('lastComment', data.comment);
+      localStorage.setItem('lastTimestamp', formattedTime);
 
       showCountdown(waitTime);
     } catch (e) {
@@ -180,13 +199,24 @@
     resultEl.classList.add('visible');
   }
 
+  function showResult(result, comment, timestamp) {
+    const resultEl = document.getElementById('result');
+    resultEl.innerHTML = `
+      <div class="kanji">${result}</div>
+      <div class="comment">${comment}</div>
+      <div class="timestamp">更新時間 (JST): ${timestamp}</div>
+    `;
+  }
+
   function showCountdown(ms) {
     const button = document.querySelector('button');
+    const countdownEl = document.getElementById('countdown-timer');
     button.disabled = true;
 
     let remain = ms;
     updateCountdownText(remain);
 
+    clearInterval(countdownInterval);
     countdownInterval = setInterval(() => {
       remain -= 1000;
       if (remain <= 0) {
