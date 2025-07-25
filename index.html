@@ -2,77 +2,92 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Omikuji Fortune</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Omikuji</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
   <style>
-    * {
+    *, *::before, *::after {
       box-sizing: border-box;
     }
-    body {
-      margin: 0;
-      font-family: "Segoe UI", "Noto Sans JP", sans-serif;
-      background: linear-gradient(to right, #f0f4f8, #e6ecf1);
+    html, body {
+      margin: 0; padding: 0;
+      font-family: 'Inter', 'Segoe UI', 'Hiragino Kaku Gothic ProN', sans-serif;
+      background: linear-gradient(to bottom, #ffcf91 0%, #a96bf8 100%);
+      min-height: 100vh;
+      color: #333;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 2rem;
-      min-height: 100vh;
-      color: #222;
-      text-align: center;
+      padding: 2rem 1rem;
     }
     h1 {
       font-size: 2rem;
-      margin-bottom: 0.5rem;
-    }
-    h2 {
-      font-size: 1rem;
-      font-weight: normal;
-      color: #555;
+      color: #f0f0f0;
+      text-shadow: 0 0 8px rgba(0,0,0,0.7);
       margin-bottom: 2rem;
+      text-align: center;
     }
     button {
-      background-color: #4f46e5;
-      color: white;
+      display: inline-block;
+      background: rgba(20, 20, 20, 0.15);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      color: #ddd;
       border: none;
       padding: 1rem 2rem;
-      font-size: 1.2rem;
-      border-radius: 0.75rem;
+      border-radius: 16px;
+      font-size: 1.25rem;
+      font-weight: 600;
       cursor: pointer;
-      transition: background 0.3s;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+      transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
     }
     button:hover {
-      background-color: #3730a3;
+      background: rgba(30, 30, 30, 0.3);
+      transform: translateY(-4px);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.5);
     }
     #result {
       margin-top: 2rem;
+      background: rgba(20,20,20,0.15);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      color: #fff8dd;
+      padding: 1.5rem 2rem;
+      border-radius: 16px;
+      max-width: 400px;
+      width: 90vw;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.6);
       font-size: 1.5rem;
-      line-height: 1.8;
-      word-break: break-word;
+      line-height: 1.5;
+      text-align: center;
+      user-select: none;
     }
     .kanji {
-      font-size: 2.2rem;
       font-weight: bold;
+      font-size: 2.4rem;
+      margin-bottom: 0.5rem;
     }
-    .en {
+    .comment {
       font-style: italic;
-      color: #555;
+      font-size: 1.1rem;
     }
-
-    @media (max-width: 600px) {
+    @media (max-width: 480px) {
       h1 {
         font-size: 1.5rem;
-      }
-      h2 {
-        font-size: 0.9rem;
+        margin-bottom: 1rem;
       }
       button {
-        width: 100%;
-        font-size: 1rem;
+        font-size: 1.1rem;
+        padding: 0.8rem 1.5rem;
+        border-radius: 12px;
       }
       #result {
         font-size: 1.2rem;
+        padding: 1rem 1.2rem;
+        max-width: 90vw;
       }
       .kanji {
         font-size: 1.8rem;
@@ -81,22 +96,23 @@
   </style>
 </head>
 <body>
-  <h1>おみくじを引く / Draw a Fortune</h1>
-  <h2>今日の運勢をチェック！ / Check your luck today!</h2>
-  <button onclick="drawOmikuji()">おみくじを引く / Draw</button>
-  <div id="result"></div>
 
-  <script>
-    async function drawOmikuji() {
-      const res = await fetch("https://omikuji-api.hamusata.workers.dev/api/omikuji");
-      const data = await res.json();
+<h1>おみくじを引く / Draw a Fortune</h1>
+<button onclick="drawOmikuji()">おみくじを引く / Draw</button>
+<div id="result"></div>
 
-      const resultEl = document.getElementById("result");
-      resultEl.innerHTML = `
-        <div class="kanji">${data.result}</div>
-        <div>${data.comment}</div>
-      `;
-    }
-  </script>
+<script>
+  async function drawOmikuji() {
+    const res = await fetch('https://omikuji-api.hamusata.workers.dev/api/omikuji');
+    const data = await res.json();
+
+    const resultEl = document.getElementById('result');
+    resultEl.innerHTML = `
+      <div class="kanji">${data.result}</div>
+      <div class="comment">${data.comment}</div>
+    `;
+  }
+</script>
+
 </body>
 </html>
