@@ -56,7 +56,6 @@
       line-height: 1.5;
       user-select: none;
       text-align: center;
-      /* 初期は枠なし＆背景なしに */
       background: transparent;
       box-shadow: none;
       border-radius: 16px;
@@ -81,6 +80,11 @@
       font-style: italic;
       font-size: 1.1rem;
     }
+    .timestamp {
+      margin-top: 0.8rem;
+      font-size: 0.9rem;
+      color: #ccc;
+    }
     @media (max-width: 480px) {
       h1 {
         font-size: 1.5rem;
@@ -98,6 +102,9 @@
       .kanji {
         font-size: 1.8rem;
       }
+      .timestamp {
+        font-size: 0.8rem;
+      }
     }
   </style>
 </head>
@@ -109,14 +116,31 @@
 
 <script>
   async function drawOmikuji() {
-    const res = await fetch('https://omikuji-api.hamusata.workers.dev/api/omikuji');
-    const data = await res.json();
-
     const resultEl = document.getElementById('result');
-    resultEl.innerHTML = `
-      <div class="kanji">${data.result}</div>
-      <div class="comment">${data.comment}</div>
-    `;
+    resultEl.classList.remove('visible');
+    resultEl.textContent = '読み込み中… / Loading…';
+
+    try {
+      const res = await fetch('https://omikuji-api.hamusata.workers.dev/api/omikuji');
+      if (!res.ok) throw new Error(`HTTPエラー: ${res.status}`);
+
+      const data = await res.json();
+
+      const utcDate = new Date(data.timestamp);
+      const jstDate = new Date(utcDate.getTime() + 9 * 60 * 60 * 1000);
+      const formattedTime = jstDate.toLocaleString('ja-JP', {
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
+      });
+
+      resultEl.innerHTML = `
+        <div class="kanji">${data.result}</div>
+        <div class="comment">${data.comment}</div>
+        <div class="timestamp">更新時間 (JST): ${formattedTime}</div>
+      `;
+    } catch (e) {
+      resultEl.textContent = '通信エラーが発生しました。後でもう一度試してください。\nNetwork error occurred. Please try again later.';
+    }
     resultEl.classList.add('visible');
   }
 </script>
