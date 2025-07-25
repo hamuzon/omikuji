@@ -136,7 +136,7 @@
     const now = Date.now();
 
     if (lastDraw && now - lastDraw < waitTime) {
-      // 前回結果表示
+      // 前回結果表示＆カウントダウン開始
       const savedResult = localStorage.getItem('lastResult');
       const savedComment = localStorage.getItem('lastComment');
       const savedTimestamp = localStorage.getItem('lastTimestamp');
@@ -145,7 +145,6 @@
         showResult(savedResult, savedComment, savedTimestamp);
       }
 
-      // カウントダウン開始
       showCountdown(waitTime - (now - lastDraw));
     }
   });
@@ -206,6 +205,7 @@
       <div class="comment">${comment}</div>
       <div class="timestamp">更新時間 (JST): ${timestamp}</div>
     `;
+    resultEl.classList.add('visible');
   }
 
   function showCountdown(ms) {
@@ -222,7 +222,6 @@
       if (remain <= 0) {
         clearInterval(countdownInterval);
         removeCountdown();
-        button.disabled = false;
       } else {
         updateCountdownText(remain);
       }
@@ -239,7 +238,22 @@
 
   function removeCountdown() {
     const countdownEl = document.getElementById('countdown-timer');
+    const resultEl = document.getElementById('result');
+    const button = document.querySelector('button');
+
     if (countdownEl) countdownEl.textContent = '';
+    if (resultEl) {
+      resultEl.textContent = '';
+      resultEl.classList.remove('visible');
+    }
+
+    // localStorageの保存をクリア
+    localStorage.removeItem('lastDrawTime');
+    localStorage.removeItem('lastResult');
+    localStorage.removeItem('lastComment');
+    localStorage.removeItem('lastTimestamp');
+
+    if (button) button.disabled = false;
   }
 </script>
 
