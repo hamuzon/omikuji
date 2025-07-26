@@ -52,13 +52,6 @@
       cursor: not-allowed;
       opacity: 0.6;
     }
-    #countdown-timer {
-      margin-top: 1rem;
-      color: #fff8dd;
-      font-size: 1rem;
-      font-weight: 600;
-      user-select: none;
-    }
     #result {
       margin-top: 2rem;
       max-width: 400px;
@@ -114,9 +107,6 @@
       .kanji {
         font-size: 1.8rem;
       }
-      #countdown-timer {
-        font-size: 0.9rem;
-      }
     }
   </style>
 </head>
@@ -124,78 +114,69 @@
 
 <h1>おみくじを引く / Draw a Fortune</h1>
 <button onclick="drawOmikuji()">おみくじを引く / Draw</button>
-<div id="countdown-timer" aria-live="polite"></div>
 <div id="result" aria-live="polite"></div>
 
 <script>
-  const waitTime = 60000; // 1分(ミリ秒)
-  let countdownInterval;
-
+  const keepDuration = 5 * 60 * 1000; // 5分間(ミリ秒)
+  
   window.addEventListener('load', () => {
     const lastDraw = localStorage.getItem('lastDrawTime');
     const now = Date.now();
 
-    if (lastDraw && now - lastDraw < waitTime) {
-      // 前回結果表示＆カウントダウン開始
+    if (lastDraw && now - lastDraw < keepDuration) {
+      // 5分以内なら前回の結果を表示
       const savedResult = localStorage.getItem('lastResult');
       const savedComment = localStorage.getItem('lastComment');
       const savedTimestamp = localStorage.getItem('lastTimestamp');
 
       if (savedResult && savedComment && savedTimestamp) {
         showResult(savedResult, savedComment, savedTimestamp);
+        // ボタンは押せる状態にする（自由に再度引ける）
+        document.querySelector('button').disabled = false;
+        return;
       }
-
-      showCountdown(waitTime - (now - lastDraw));
-    } else {
-      // カウントダウン経過後も結果は消さないしボタン有効にする
-      const button = document.querySelector('button');
-      if (button) button.disabled = false;
     }
+    // 5分以上経ってたらデータ削除して初期状態
+    clearStorage();
   });
-
-  async function fetchOmikuji(url) {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTPエラー: ${res.status}`);
-    return await res.json();
-  }
 
   async function drawOmikuji() {
     const button = document.querySelector('button');
     const resultEl = document.getElementById('result');
-    const countdownEl = document.getElementById('countdown-timer');
 
-    // 押した時にローカルストレージクリア
-    localStorage.removeItem('lastDrawTime');
-    localStorage.removeItem('lastResult');
-    localStorage.removeItem('lastComment');
-    localStorage.removeItem('lastTimestamp');
-    localStorage.removeItem('lastApiUsed');
-
-    button.disabled = true;
-    clearInterval(countdownInterval);
-    countdownEl.textContent = '';
+    // 押したら一旦結果クリア＆ボタン無効化
+    resultEl.textContent = '';
     resultEl.classList.remove('visible');
-    resultEl.textContent = '読み込み中… / Loading…';
+    button.disabled = true;
 
     try {
-      // メインAPIを試す
-      const data = await fetchOmikuji('https://api.hamusata.f5.si/api/omikuji');
-      saveAndShow(data, Date.now());
-    } catch (e1) {
+      // メインAPIにfetch
+      let res = await fetch('https://omikuji-api.hamusata.workers.dev/api/omikuji');
+      if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
+
+      let data = await res.json();
+      showAndStoreResult(data);
+    } catch (e) {
+      // エラー時はサブAPIへ
       try {
-        // メインAPI失敗したらサブAPIを試す
-        const data = await fetchOmikuji('https://omikuji-api.hamusata.workers.dev/api/omikuji');
-        saveAndShow(data, Date.now());
+        let res2 = await fetch('https://omikuji-api2.hamusata.workers.dev/api/omikuji');
+        if (!res2.ok) throw new Error(`HTTP error: ${res2.status}`);
+
+        let data2 = await res2.json();
+        showAndStoreResult(data2);
       } catch (e2) {
-        resultEl.textContent = '通信エラーが発生しました。後でもう一度試してください。\nNetwork error occurred. Please try again later.';
+        // どちらも失敗したらエラーメッセージ
+        resultEl.textContent = '通信エラーが発生しました。後でもう一度試してください。';
         button.disabled = false;
-        resultEl.classList.add('visible');
-        return;
       }
     }
   }
 
-  function saveAndShow(data, now) {
+  function showAndStoreResult(data) {
+    const resultEl = document.getElementById('result');
+    const button = document.querySelector('button');
+
+    // JSTに変換
     const utcDate = new Date(data.timestamp);
     const jstDate = new Date(utcDate.getTime() + 9 * 60 * 60 * 1000);
     const formattedTime = jstDate.toLocaleString('ja-JP', {
@@ -205,13 +186,14 @@
 
     showResult(data.result, data.comment, formattedTime);
 
-    // ローカルストレージに保存
+    // 保存
+    const now = Date.now();
     localStorage.setItem('lastDrawTime', now);
     localStorage.setItem('lastResult', data.result);
     localStorage.setItem('lastComment', data.comment);
     localStorage.setItem('lastTimestamp', formattedTime);
 
-    showCountdown(waitTime);
+    button.disabled = false;
   }
 
   function showResult(result, comment, timestamp) {
@@ -224,34 +206,11 @@
     resultEl.classList.add('visible');
   }
 
-  function showCountdown(ms) {
-    const button = document.querySelector('button');
-    const countdownEl = document.getElementById('countdown-timer');
-    button.disabled = true;
-
-    let remain = ms;
-    updateCountdownText(remain);
-
-    clearInterval(countdownInterval);
-    countdownInterval = setInterval(() => {
-      remain -= 1000;
-      if (remain <= 0) {
-        clearInterval(countdownInterval);
-        countdownEl.textContent = '';
-        // カウントダウン終わっても結果は消さずにボタンだけ有効にする
-        if (button) button.disabled = false;
-      } else {
-        updateCountdownText(remain);
-      }
-    }, 1000);
-  }
-
-  function updateCountdownText(ms) {
-    const remainMin = Math.floor(ms / 60000);
-    const remainSec = Math.floor((ms % 60000) / 1000);
-
-    const countdownEl = document.getElementById('countdown-timer');
-    countdownEl.textContent = `あと${remainMin}分${remainSec}秒待ってね / Please wait ${remainMin} min ${remainSec} sec`;
+  function clearStorage() {
+    localStorage.removeItem('lastDrawTime');
+    localStorage.removeItem('lastResult');
+    localStorage.removeItem('lastComment');
+    localStorage.removeItem('lastTimestamp');
   }
 </script>
 
