@@ -6,8 +6,9 @@
   <title>Omikuji</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
   <style>
-    /* --- スタイルそのまま維持 --- */
-    *, *::before, *::after { box-sizing: border-box; }
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
     html, body {
       margin: 0; padding: 0;
       font-family: 'Inter', 'Segoe UI', 'Hiragino Kaku Gothic ProN', sans-serif;
@@ -89,19 +90,33 @@
     .comment {
       font-style: italic;
       font-size: 1.1rem;
+      margin-bottom: 0.5rem;
     }
     .timestamp {
-      margin-top: 1rem;
       font-size: 0.85rem;
       color: #ccc;
       user-select: none;
     }
     @media (max-width: 480px) {
-      h1 { font-size: 1.5rem; margin-bottom: 1rem; }
-      button { font-size: 1.1rem; padding: 0.8rem 1.5rem; border-radius: 12px; }
-      #result.visible { font-size: 1.2rem; padding: 1rem 1.2rem; }
-      .kanji { font-size: 1.8rem; }
-      #countdown-timer { font-size: 0.9rem; }
+      h1 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+      }
+      button {
+        font-size: 1.1rem;
+        padding: 0.8rem 1.5rem;
+        border-radius: 12px;
+      }
+      #result.visible {
+        font-size: 1.2rem;
+        padding: 1rem 1.2rem;
+      }
+      .kanji {
+        font-size: 1.8rem;
+      }
+      #countdown-timer {
+        font-size: 0.9rem;
+      }
     }
   </style>
 </head>
@@ -116,86 +131,114 @@
   const STORAGE_KEY = "omikuji_result";
   const API_MAIN = "https://api.hamusata.f5.si/api/omikuji";
   const API_BACKUP = "https://omikuji-api.hamusata.workers.dev/api/omikuji";
+  const WAIT_SECONDS = 60; // ボタン無効時間（秒）
+
   const resultBox = document.getElementById("result");
   const timerBox = document.getElementById("countdown-timer");
   const button = document.getElementById("omikuji-button");
 
-  function displayResult(resultText) {
-    resultBox.textContent = resultText;
+  let countdownInterval;
+
+  function showResult(result, comment, timestamp) {
+    resultBox.innerHTML = `
+      <div class="kanji">${result}</div>
+      <div class="comment">${comment}</div>
+      <div class="timestamp">更新時間 (JST): ${timestamp}</div>
+    `;
     resultBox.classList.add("visible");
   }
 
-  function checkStoredResult() {
+  function updateCountdown(seconds) {
+    const remainMin = Math.floor(seconds / 60);
+    const remainSec = seconds % 60;
+    timerBox.textContent = `あと${remainMin}分${remainSec}秒待ってね / Please wait ${remainMin} min ${remainSec} sec`;
+  }
+
+  function clearCountdown() {
+    clearInterval(countdownInterval);
+    timerBox.textContent = "";
+    button.disabled = false;
+  }
+
+  function startCountdown(seconds) {
+    button.disabled = true;
+    updateCountdown(seconds);
+
+    countdownInterval = setInterval(() => {
+      seconds--;
+      if (seconds <= 0) {
+        clearCountdown();
+      } else {
+        updateCountdown(seconds);
+      }
+    }, 1000);
+  }
+
+  function loadStoredResult() {
     const data = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if (!data) return;
+    if (!data) return false;
 
     const now = Date.now();
     const elapsed = now - data.timestamp;
 
-    if (elapsed < 5 * 60 * 1000) {
-      // 表示（5分以内）
-      displayResult(data.result);
-      if (elapsed < 60 * 1000) {
-        // ボタン無効（1分以内）
-        button.disabled = true;
-        const remaining = 60 - Math.floor(elapsed / 1000);
-        updateCountdown(remaining);
-        const interval = setInterval(() => {
-          const seconds = parseInt(timerBox.textContent);
-          if (seconds <= 1) {
-            clearInterval(interval);
-            button.disabled = false;
-            timerBox.textContent = "";
-          } else {
-            updateCountdown(seconds - 1);
-          }
-        }, 1000);
+    if (elapsed < 5 * 60 * 1000) { // 5分以内は結果表示
+      showResult(data.result, data.comment, data.timestampJST);
+
+      if (elapsed < WAIT_SECONDS * 1000) {
+        // ボタン無効＆カウントダウン開始
+        startCountdown(WAIT_SECONDS - Math.floor(elapsed / 1000));
+      } else {
+        button.disabled = false;
       }
+      return true;
     } else {
       localStorage.removeItem(STORAGE_KEY);
+      return false;
     }
   }
 
-  function updateCountdown(seconds) {
-    timerBox.textContent = `次に引けるまで：${seconds}秒`;
-  }
-
   async function drawOmikuji() {
+    if (button.disabled) return;
+
     button.disabled = true;
     timerBox.textContent = "おみくじ取得中...";
+    resultBox.classList.remove("visible");
+    resultBox.textContent = "";
+
     try {
       let res = await fetch(API_MAIN);
       if (!res.ok) res = await fetch(API_BACKUP);
       const data = await res.json();
-      const result = data.result || "結果が取得できませんでした";
 
-      displayResult(result);
+      // UTCからJST変換＆フォーマット
+      const utcDate = new Date(data.timestamp);
+      const jstDate = new Date(utcDate.getTime() + 9 * 60 * 60 * 1000);
+      const formattedTime = jstDate.toLocaleString('ja-JP', {
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
+      });
+
+      showResult(data.result, data.comment, formattedTime);
+
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        result,
-        timestamp: Date.now()
+        result: data.result,
+        comment: data.comment,
+        timestamp: Date.now(),
+        timestampJST: formattedTime
       }));
 
-      let count = 60;
-      updateCountdown(count);
-      const interval = setInterval(() => {
-        count--;
-        if (count <= 0) {
-          clearInterval(interval);
-          timerBox.textContent = "";
-          button.disabled = false;
-        } else {
-          updateCountdown(count);
-        }
-      }, 1000);
+      startCountdown(WAIT_SECONDS);
     } catch (e) {
-      resultBox.textContent = "エラーが発生しました🥲";
+      resultBox.textContent = "通信エラーが発生しました。後でもう一度試してください。\nNetwork error occurred. Please try again later.";
       resultBox.classList.add("visible");
       button.disabled = false;
       timerBox.textContent = "";
     }
   }
 
-  checkStoredResult();
+  window.addEventListener('load', () => {
+    loadStoredResult();
+  });
 </script>
 
 </body>
