@@ -97,12 +97,6 @@
       color: #ccc;
       user-select: none;
     }
-    .api-used {
-      margin-top: 0.8rem;
-      font-size: 0.85rem;
-      color: #aaa;
-      user-select: none;
-    }
     @media (max-width: 480px) {
       h1 {
         font-size: 1.5rem;
@@ -146,13 +140,16 @@
       const savedResult = localStorage.getItem('lastResult');
       const savedComment = localStorage.getItem('lastComment');
       const savedTimestamp = localStorage.getItem('lastTimestamp');
-      const savedApiUsed = localStorage.getItem('lastApiUsed');
 
       if (savedResult && savedComment && savedTimestamp) {
-        showResult(savedResult, savedComment, savedTimestamp, savedApiUsed);
+        showResult(savedResult, savedComment, savedTimestamp);
       }
 
       showCountdown(waitTime - (now - lastDraw));
+    } else {
+      // カウントダウン経過後も結果は消さないしボタン有効にする
+      const button = document.querySelector('button');
+      if (button) button.disabled = false;
     }
   });
 
@@ -167,20 +164,12 @@
     const resultEl = document.getElementById('result');
     const countdownEl = document.getElementById('countdown-timer');
 
-    // 押した時にローカルストレージクリア！
+    // 押した時にローカルストレージクリア
     localStorage.removeItem('lastDrawTime');
     localStorage.removeItem('lastResult');
     localStorage.removeItem('lastComment');
     localStorage.removeItem('lastTimestamp');
     localStorage.removeItem('lastApiUsed');
-
-    const lastDraw = localStorage.getItem('lastDrawTime');
-    const now = Date.now();
-
-    if (lastDraw && now - lastDraw < waitTime) {
-      showCountdown(waitTime - (now - lastDraw));
-      return;
-    }
 
     button.disabled = true;
     clearInterval(countdownInterval);
@@ -191,12 +180,12 @@
     try {
       // メインAPIを試す
       const data = await fetchOmikuji('https://api.hamusata.f5.si/api/omikuji');
-      saveAndShow(data, now, 'メインAPI');
+      saveAndShow(data, Date.now());
     } catch (e1) {
       try {
         // メインAPI失敗したらサブAPIを試す
         const data = await fetchOmikuji('https://omikuji-api.hamusata.workers.dev/api/omikuji');
-        saveAndShow(data, now, 'サブAPI');
+        saveAndShow(data, Date.now());
       } catch (e2) {
         resultEl.textContent = '通信エラーが発生しました。後でもう一度試してください。\nNetwork error occurred. Please try again later.';
         button.disabled = false;
@@ -206,7 +195,7 @@
     }
   }
 
-  function saveAndShow(data, now, apiName) {
+  function saveAndShow(data, now) {
     const utcDate = new Date(data.timestamp);
     const jstDate = new Date(utcDate.getTime() + 9 * 60 * 60 * 1000);
     const formattedTime = jstDate.toLocaleString('ja-JP', {
@@ -214,25 +203,23 @@
       hour: '2-digit', minute: '2-digit', second: '2-digit'
     });
 
-    showResult(data.result, data.comment, formattedTime, apiName);
+    showResult(data.result, data.comment, formattedTime);
 
     // ローカルストレージに保存
     localStorage.setItem('lastDrawTime', now);
     localStorage.setItem('lastResult', data.result);
     localStorage.setItem('lastComment', data.comment);
     localStorage.setItem('lastTimestamp', formattedTime);
-    localStorage.setItem('lastApiUsed', apiName);
 
     showCountdown(waitTime);
   }
 
-  function showResult(result, comment, timestamp, apiName) {
+  function showResult(result, comment, timestamp) {
     const resultEl = document.getElementById('result');
     resultEl.innerHTML = `
       <div class="kanji">${result}</div>
       <div class="comment">${comment}</div>
       <div class="timestamp">更新時間 (JST): ${timestamp}</div>
-      <div class="api-used">API使用: ${apiName}</div>
     `;
     resultEl.classList.add('visible');
   }
@@ -250,7 +237,9 @@
       remain -= 1000;
       if (remain <= 0) {
         clearInterval(countdownInterval);
-        removeCountdown();
+        countdownEl.textContent = '';
+        // カウントダウン終わっても結果は消さずにボタンだけ有効にする
+        if (button) button.disabled = false;
       } else {
         updateCountdownText(remain);
       }
@@ -263,22 +252,6 @@
 
     const countdownEl = document.getElementById('countdown-timer');
     countdownEl.textContent = `あと${remainMin}分${remainSec}秒待ってね / Please wait ${remainMin} min ${remainSec} sec`;
-  }
-
-  function removeCountdown() {
-    const countdownEl = document.getElementById('countdown-timer');
-    const resultEl = document.getElementById('result');
-    const button = document.querySelector('button');
-
-    if (countdownEl) countdownEl.textContent = '';
-    if (resultEl) {
-      resultEl.textContent = '';
-      resultEl.classList.remove('visible');
-    }
-
-    // localStorageの保存はボタン押し時にクリアするからここではしない
-
-    if (button) button.disabled = false;
   }
 </script>
 
