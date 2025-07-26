@@ -6,7 +6,6 @@
   <title>Omikuji</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
   <style>
-    /* ベースのスタイル */
     *, *::before, *::after {
       box-sizing: border-box;
     }
@@ -32,7 +31,6 @@
     button {
       background: rgba(20, 20, 20, 0.15);
       backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
       color: #ddd;
       border: none;
       padding: 1rem 2rem;
@@ -71,25 +69,14 @@
     #result.visible {
       background: rgba(20,20,20,0.15);
       backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
       color: #fff8dd;
       padding: 1.5rem 2rem;
       box-shadow: 0 6px 18px rgba(0,0,0,0.6);
     }
-    .kanji {
-      font-weight: bold;
-      font-size: 2.4rem;
-      margin-bottom: 0.5rem;
-    }
-    .comment {
-      font-style: italic;
-      font-size: 1.1rem;
-    }
     .timestamp {
-      margin-top: 1rem;
       font-size: 0.85rem;
+      margin-top: 1rem;
       color: #ccc;
-      user-select: none;
     }
     @media (max-width: 480px) {
       h1 {
@@ -105,130 +92,91 @@
         font-size: 1.2rem;
         padding: 1rem 1.2rem;
       }
-      .kanji {
-        font-size: 1.8rem;
-      }
     }
   </style>
 </head>
 <body>
 
 <h1>おみくじを引く / Draw a Fortune</h1>
-<button onclick="drawOmikuji()">おみくじを引く / Draw</button>
+<button id="drawBtn">おみくじを引く / Draw</button>
 <div id="result" aria-live="polite"></div>
 
 <script>
-  // 5分間（ミリ秒）結果をキープする時間設定
-  const keepDuration = 5 * 60 * 1000;
+  const resultEl = document.getElementById('result');
+  const drawBtn = document.getElementById('drawBtn');
 
-  // ページ読み込み時の処理
-  window.addEventListener('load', () => {
-    const lastDraw = localStorage.getItem('lastDrawTime');
+  const API_LIST = [
+    "https://api.hamusata.f5.si/api/omikuji",
+    "https://omikuji-api.hamusata.workers.dev/api/omikuji"
+  ];
+  const STORAGE_KEY = "omikuji_result";
+  const TIME_KEY = "omikuji_time";
+  const EXPIRE_MS = 4 * 60 * 1000; // 4分
+
+  function loadStoredOmikuji() {
+    const result = localStorage.getItem(STORAGE_KEY);
+    const timestamp = parseInt(localStorage.getItem(TIME_KEY));
     const now = Date.now();
-
-    // 5分以内に引かれたおみくじがあれば表示
-    if (lastDraw && now - lastDraw < keepDuration) {
-      const savedResult = localStorage.getItem('lastResult');
-      const savedComment = localStorage.getItem('lastComment');
-      const savedTimestamp = localStorage.getItem('lastTimestamp');
-
-      if (savedResult && savedComment && savedTimestamp) {
-        showResult(savedResult, savedComment, savedTimestamp);
-      }
-    } else {
-      // 5分以上経過してたら保存データ削除し初期化
-      clearStorage();
-      resetUI();
+    if (result && timestamp && (now - timestamp < EXPIRE_MS)) {
+      showResult(result);
+      return true;
     }
-  });
-
-  // おみくじを引くボタン押した時の関数
-  async function drawOmikuji() {
-    const button = document.querySelector('button');
-    const resultEl = document.getElementById('result');
-
-    // ボタン無効化して読み込み表示
-    button.disabled = true;
-    resultEl.textContent = '読み込み中… / Loading…';
-    resultEl.classList.remove('visible');
-
-    try {
-      // メインAPIにリクエスト
-      let res = await fetch('https://api.hamusata.f5.si/api/omikuji');
-      if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
-
-      let data = await res.json();
-      showAndStoreResult(data);
-    } catch (e1) {
-      try {
-        // メインAPI失敗時はサブAPIにリクエスト
-        let res2 = await fetch('https://omikuji-api.hamusata.workers.dev/api/omikuji');
-        if (!res2.ok) throw new Error(`HTTP error: ${res2.status}`);
-
-        let data2 = await res2.json();
-        showAndStoreResult(data2);
-      } catch (e2) {
-        // 両方失敗時はエラーメッセージ表示しボタン有効化
-        resultEl.textContent = '通信エラーが発生しました。後でもう一度試してください。';
-        button.disabled = false;
-      }
-    }
+    clearStorage();
+    return false;
   }
 
-  // 結果表示とローカルストレージ保存を同時に行う関数
-  function showAndStoreResult(data) {
-    const resultEl = document.getElementById('result');
-    const button = document.querySelector('button');
-
-    // UTCタイムスタンプをJSTに変換
-    const utcDate = new Date(data.timestamp);
-    const jstDate = new Date(utcDate.getTime() + 9 * 60 * 60 * 1000);
-    const formattedTime = jstDate.toLocaleString('ja-JP', {
-      year: 'numeric', month: '2-digit', day: '2-digit',
-      hour: '2-digit', minute: '2-digit', second: '2-digit'
-    });
-
-    // 結果を表示
-    showResult(data.result, data.comment, formattedTime);
-
-    // 取得時刻を保存（ミリ秒）
-    const now = Date.now();
-    localStorage.setItem('lastDrawTime', now);
-    localStorage.setItem('lastResult', data.result);
-    localStorage.setItem('lastComment', data.comment);
-    localStorage.setItem('lastTimestamp', formattedTime);
-
-    // ボタン再び有効化
-    button.disabled = false;
+  function saveResult(result) {
+    localStorage.setItem(STORAGE_KEY, result);
+    localStorage.setItem(TIME_KEY, Date.now().toString());
   }
 
-  // 結果のHTMLをセット＆表示用クラス追加
-  function showResult(result, comment, timestamp) {
-    const resultEl = document.getElementById('result');
-    resultEl.innerHTML = `
-      <div class="kanji">${result}</div>
-      <div class="comment">${comment}</div>
-      <div class="timestamp">更新時間 (JST): ${timestamp}</div>
-    `;
-    resultEl.classList.add('visible');
-  }
-
-  // 保存データを消す関数
   function clearStorage() {
-    localStorage.removeItem('lastDrawTime');
-    localStorage.removeItem('lastResult');
-    localStorage.removeItem('lastComment');
-    localStorage.removeItem('lastTimestamp');
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(TIME_KEY);
+    resultEl.classList.remove('visible');
+    resultEl.textContent = "";
   }
 
-  // UIを初期状態に戻す関数（結果消してボタン有効）
-  function resetUI() {
-    const button = document.querySelector('button');
-    const resultEl = document.getElementById('result');
-    button.disabled = false;
-    resultEl.textContent = '';
-    resultEl.classList.remove('visible');
+  function showResult(text) {
+    resultEl.textContent = text;
+    resultEl.classList.add("visible");
   }
+
+  async function drawOmikuji() {
+    drawBtn.disabled = true;
+    resultEl.textContent = "おみくじを引いています...";
+    resultEl.classList.add("visible");
+
+    for (const url of API_LIST) {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("Fetch error");
+        const data = await res.json();
+        if (data.result) {
+          showResult(data.result);
+          saveResult(data.result);
+          return;
+        }
+      } catch (err) {
+        console.warn(`Failed to fetch from ${url}`, err);
+      }
+    }
+
+    resultEl.textContent = "おみくじの取得に失敗しました…😭";
+  }
+
+  drawBtn.addEventListener("click", drawOmikuji);
+
+  // 初回ロード時に過去結果があれば表示
+  loadStoredOmikuji();
+
+  // 4分経過後にローカルストレージを自動でクリア
+  setInterval(() => {
+    const ts = parseInt(localStorage.getItem(TIME_KEY));
+    if (ts && (Date.now() - ts) >= EXPIRE_MS) {
+      clearStorage();
+    }
+  }, 10 * 1000); // 10秒おきにチェック
 </script>
 
 </body>
