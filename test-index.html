@@ -6,6 +6,7 @@
   <title>Omikuji</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
   <style>
+    /* ベースのスタイル */
     *, *::before, *::after {
       box-sizing: border-box;
     }
@@ -117,66 +118,69 @@
 <div id="result" aria-live="polite"></div>
 
 <script>
-  const keepDuration = 5 * 60 * 1000; // 5分間(ミリ秒)
-  
+  // 5分間（ミリ秒）結果をキープする時間設定
+  const keepDuration = 5 * 60 * 1000;
+
+  // ページ読み込み時の処理
   window.addEventListener('load', () => {
     const lastDraw = localStorage.getItem('lastDrawTime');
     const now = Date.now();
 
+    // 5分以内に引かれたおみくじがあれば表示
     if (lastDraw && now - lastDraw < keepDuration) {
-      // 5分以内なら前回の結果を表示
       const savedResult = localStorage.getItem('lastResult');
       const savedComment = localStorage.getItem('lastComment');
       const savedTimestamp = localStorage.getItem('lastTimestamp');
 
       if (savedResult && savedComment && savedTimestamp) {
         showResult(savedResult, savedComment, savedTimestamp);
-        // ボタンは押せる状態にする（自由に再度引ける）
-        document.querySelector('button').disabled = false;
-        return;
       }
+    } else {
+      // 5分以上経過してたら保存データ削除し初期化
+      clearStorage();
+      resetUI();
     }
-    // 5分以上経ってたらデータ削除して初期状態
-    clearStorage();
   });
 
+  // おみくじを引くボタン押した時の関数
   async function drawOmikuji() {
     const button = document.querySelector('button');
     const resultEl = document.getElementById('result');
 
-    // 押したら一旦結果クリア＆ボタン無効化
-    resultEl.textContent = '';
-    resultEl.classList.remove('visible');
+    // ボタン無効化して読み込み表示
     button.disabled = true;
+    resultEl.textContent = '読み込み中… / Loading…';
+    resultEl.classList.remove('visible');
 
     try {
-      // メインAPIにfetch
-      let res = await fetch('https://omikuji-api.hamusata.workers.dev/api/omikuji');
+      // メインAPIにリクエスト
+      let res = await fetch('https://api.hamusata.f5.si/api/omikuji');
       if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
 
       let data = await res.json();
       showAndStoreResult(data);
-    } catch (e) {
-      // エラー時はサブAPIへ
+    } catch (e1) {
       try {
-        let res2 = await fetch('https://omikuji-api2.hamusata.workers.dev/api/omikuji');
+        // メインAPI失敗時はサブAPIにリクエスト
+        let res2 = await fetch('https://omikuji-api.hamusata.workers.dev/api/omikuji');
         if (!res2.ok) throw new Error(`HTTP error: ${res2.status}`);
 
         let data2 = await res2.json();
         showAndStoreResult(data2);
       } catch (e2) {
-        // どちらも失敗したらエラーメッセージ
+        // 両方失敗時はエラーメッセージ表示しボタン有効化
         resultEl.textContent = '通信エラーが発生しました。後でもう一度試してください。';
         button.disabled = false;
       }
     }
   }
 
+  // 結果表示とローカルストレージ保存を同時に行う関数
   function showAndStoreResult(data) {
     const resultEl = document.getElementById('result');
     const button = document.querySelector('button');
 
-    // JSTに変換
+    // UTCタイムスタンプをJSTに変換
     const utcDate = new Date(data.timestamp);
     const jstDate = new Date(utcDate.getTime() + 9 * 60 * 60 * 1000);
     const formattedTime = jstDate.toLocaleString('ja-JP', {
@@ -184,18 +188,21 @@
       hour: '2-digit', minute: '2-digit', second: '2-digit'
     });
 
+    // 結果を表示
     showResult(data.result, data.comment, formattedTime);
 
-    // 保存
+    // 取得時刻を保存（ミリ秒）
     const now = Date.now();
     localStorage.setItem('lastDrawTime', now);
     localStorage.setItem('lastResult', data.result);
     localStorage.setItem('lastComment', data.comment);
     localStorage.setItem('lastTimestamp', formattedTime);
 
+    // ボタン再び有効化
     button.disabled = false;
   }
 
+  // 結果のHTMLをセット＆表示用クラス追加
   function showResult(result, comment, timestamp) {
     const resultEl = document.getElementById('result');
     resultEl.innerHTML = `
@@ -206,11 +213,21 @@
     resultEl.classList.add('visible');
   }
 
+  // 保存データを消す関数
   function clearStorage() {
     localStorage.removeItem('lastDrawTime');
     localStorage.removeItem('lastResult');
     localStorage.removeItem('lastComment');
     localStorage.removeItem('lastTimestamp');
+  }
+
+  // UIを初期状態に戻す関数（結果消してボタン有効）
+  function resetUI() {
+    const button = document.querySelector('button');
+    const resultEl = document.getElementById('result');
+    button.disabled = false;
+    resultEl.textContent = '';
+    resultEl.classList.remove('visible');
   }
 </script>
 
