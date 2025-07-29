@@ -97,6 +97,19 @@
       color: #ccc;
       user-select: none;
     }
+    footer#footer-copy {
+      margin-top: 4rem;
+      font-size: 0.9rem;
+      color: #ccc;
+      user-select: none;
+    }
+    a.link {
+      color: #ccc;
+      text-decoration: none;
+    }
+    a.link:hover, a.link:focus {
+      text-decoration: underline;
+    }
     @media (max-width: 480px) {
       h1 {
         font-size: 1.5rem;
@@ -126,6 +139,8 @@
 <button id="omikuji-button" onclick="drawOmikuji()">おみくじを引く / Draw</button>
 <div id="countdown-timer" aria-live="polite"></div>
 <div id="result" aria-live="polite"></div>
+
+<footer id="footer-copy"></footer>
 
 <script>
   const STORAGE_KEY = "omikuji_result";
@@ -239,6 +254,28 @@
   window.addEventListener('load', () => {
     loadStoredResult();
   });
+
+  // フッター動的表示コード
+  (function() {
+    const baseYear = 2025;
+    const currentYear = new Date().getFullYear();
+    const hostname = location.hostname;
+    const footer = document.getElementById("footer-copy");
+
+    let footerHTML = "";
+
+    if (hostname === "hamuzon.github.io") {
+      footerHTML = `&copy; ${baseYear}${currentYear > baseYear ? "–" + currentYear : ""} <a class="link" href="https://hamuzon.github.io" target="_blank" rel="noopener noreferrer">@hamuzon</a>`;
+    } else if (hostname.includes("omikuji.hamusata.f5.si")) {
+      footerHTML = `&copy; ${baseYear}${currentYear > baseYear ? "–" + currentYear : ""} <a class="link" href="https://omikuji.hamusata.f5.si" target="_blank" rel="noopener noreferrer">@hamusata/a>`;
+    } else {
+      footerHTML = `&copy; ${baseYear}${currentYear > baseYear ? "–" + currentYear : ""} おみくじ / Omikuji<`;
+    }
+
+    if (footer) {
+      footer.innerHTML = footerHTML;
+    }
+  })();
 </script>
 
 </body>
