@@ -16,7 +16,6 @@
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
   <style>
-
     *,
     *::before,
     *::after {
@@ -52,17 +51,9 @@
     }
 
     @keyframes bgMotion {
-      0% {
-        background-position: 0% 50%;
-      }
-
-      50% {
-        background-position: 100% 50%;
-      }
-
-      100% {
-        background-position: 0% 50%;
-      }
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
 
     .animate-bg {
@@ -82,7 +73,6 @@
     .liquid-glass-card {
       width: 100%;
       max-width: 520px;
-      min-height: auto;
       padding: 3.5rem 2rem;
       background: var(--glass-base);
       backdrop-filter: blur(25px) saturate(180%);
@@ -149,15 +139,8 @@
     }
 
     @keyframes floatUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px) scale(0.95);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
+      from { opacity: 0; transform: translateY(20px) scale(0.95); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
     }
 
     .kanji {
@@ -174,7 +157,7 @@
       line-height: 1.6;
       max-width: 90%;
       text-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-      word-break: break-all;
+      word-break: break-word;
     }
 
     .timestamp {
@@ -222,7 +205,6 @@
         border-radius: 40px;
       }
     }
-
   </style>
 
 </head>
@@ -267,8 +249,9 @@
   </footer>
 
   <script>
-    const API_ENDPOINT = "https://omikuji-api-1.hamusata.f5.si/api/omikuji";
-    const CACHE_KEY = "omk_final_v3";
+    const API_MAIN = "https://api.hamusata.f5.si/api/v2/omikuji";
+    const API_BACKUP = "https://omikuji-api-1.hamusata.f5.si/api/omikuji";
+    const CACHE_KEY = "omk_final_v2";
     const WAIT_LIMIT = 60000;
     let countdownInterval;
 
@@ -278,8 +261,10 @@
 
     function fireVfx(result, mode) {
       if (getQuery('vfx') === 'off') return;
+
       const isSpecial = result.includes('超') || result.includes('祝') || mode === 'birthday';
       const isDaikichi = result.includes('大吉');
+
       if (isSpecial || isDaikichi) {
         const end = Date.now() + (isSpecial ? 3000 : 1500);
         const frame = () => {
@@ -287,34 +272,24 @@
             particleCount: 4,
             angle: 60,
             spread: 60,
-            origin: {
-              x: 0,
-              y: 0.6
-            },
+            origin: { x: 0, y: 0.6 },
             colors: ['#ffffff', '#ff4e50', '#f9d423']
           });
           confetti({
             particleCount: 4,
             angle: 120,
             spread: 60,
-            origin: {
-              x: 1,
-              y: 0.6
-            },
+            origin: { x: 1, y: 0.6 },
             colors: ['#ffffff', '#00e5ff', '#7c4dff']
           });
-          if (Date.now() < end) {
-            requestAnimationFrame(frame);
-          }
+          if (Date.now() < end) requestAnimationFrame(frame);
         };
         frame();
       } else if (result.includes('小吉')) {
         confetti({
           particleCount: 30,
           spread: 40,
-          origin: {
-            y: 0.7
-          },
+          origin: { y: 0.7 },
           gravity: 1.5,
           scalar: 0.8
         });
@@ -322,9 +297,7 @@
         confetti({
           particleCount: 70,
           spread: 70,
-          origin: {
-            y: 0.7
-          }
+          origin: { y: 0.7 }
         });
       }
     }
@@ -332,6 +305,7 @@
     function updateTheme(mode, result = "") {
       const body = document.body;
       const isUltra = result.includes('超') || result.includes('祝') || mode === 'birthday';
+
       if (isUltra && getQuery('theme') !== 'off') {
         body.classList.add('animate-bg');
         body.style.background = "var(--bg-special)";
@@ -345,12 +319,15 @@
       const label = document.getElementById('wait-text');
       const btn = document.getElementById('draw-btn');
       btn.disabled = true;
+
       clearInterval(countdownInterval);
       countdownInterval = setInterval(() => {
         ms -= 1000;
         const min = Math.floor(ms / 60000);
         const sec = Math.floor((ms % 60000) / 1000);
+
         label.textContent = `あと${min}分${sec}秒待ってね / Please wait ${min} min ${sec} sec`;
+
         if (ms <= 0) {
           clearInterval(countdownInterval);
           label.textContent = "";
@@ -372,32 +349,49 @@
       const view = document.getElementById('result-view');
       btn.disabled = true;
       view.style.display = 'none';
+
       const now = new Date();
       const m = now.getMonth() + 1;
       const d = now.getDate();
       let mode = getQuery('mode') || 'normal';
+
       if (m === 1 && d <= 3) mode = 'sanganichi';
       const bday = getQuery('birthday');
-      if (bday === `${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`) mode = 'birthday';
+      if (bday === `${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`) mode = 'birthday';
+
       const params = new URLSearchParams(window.location.search);
       if (!params.has('mode')) params.set('mode', mode);
+
+      let data;
       try {
-        const response = await fetch(`${API_ENDPOINT}?${params.toString()}`);
-        const data = await response.json();
-        render(data);
-        localStorage.setItem(CACHE_KEY, JSON.stringify({
-          ts: Date.now(),
-          payload: data
-        }));
-        updateTheme(data.mode, data.result);
-        fireVfx(data.result, data.mode);
-        startTimer(WAIT_LIMIT);
+        // メインAPIへの試行
+        const response = await fetch(`${API_MAIN}?${params.toString()}`);
+        if (!response.ok) throw new Error('Main API failed');
+        data = await response.json();
       } catch (err) {
-        btn.disabled = false;
+        console.warn("Switching to backup API...");
+        try {
+          // バックアップAPIへの試行
+          const response = await fetch(`${API_BACKUP}?${params.toString()}`);
+          data = await response.json();
+        } catch (backupErr) {
+          btn.disabled = false;
+          alert("おみくじを取得できませんでした。時間をおいて再度お試しください。");
+          return;
+        }
       }
+
+      render(data);
+      localStorage.setItem(CACHE_KEY, JSON.stringify({
+        ts: Date.now(),
+        payload: data
+      }));
+
+      updateTheme(data.mode, data.result);
+      fireVfx(data.result, data.mode);
+      startTimer(WAIT_LIMIT);
     }
-    
-    
+
     function setupFooter() {
       const baseYear = 2025;
       const currentYear = new Date().getFullYear();
@@ -408,9 +402,9 @@
       const yearRange = `${baseYear}${currentYear > baseYear ? "–" + currentYear : ""}`;
 
       if (hostname === "hamuzon.github.io") {
-        footerHTML = `&copy; ${yearRange} <a href="https://hamuzon.github.io" target="_blank" rel="noopener noreferrer">@hamuzon</a>御神籤(おみくじ) / Omikuji`;
+        footerHTML = `&copy; ${yearRange} <a href="https://hamuzon.github.io" target="_blank" rel="noopener noreferrer">@hamuzon</a> 御神籤(おみくじ) / Omikuji`;
       } else if (hostname.includes("hamusata.f5.si")) {
-        footerHTML = `&copy; ${yearRange} <a href="https://home.hamusata.f5.si" target="_blank" rel="noopener noreferrer">@hamusata</a>御神籤(おみくじ) / Omikuji`;
+        footerHTML = `&copy; ${yearRange} <a href="https://home.hamusata.f5.si" target="_blank" rel="noopener noreferrer">@hamusata</a> 御神籤(おみくじ) / Omikuji`;
       } else if (hostname.includes("web.fc2.com")) {
         footerHTML = `&copy; ${yearRange} <a href="https://hamuzon-jp.f5.si" target="_blank" rel="noopener noreferrer">@hamuzon</a> 御神籤(おみくじ) / Omikuji`;
       } else {
@@ -418,7 +412,6 @@
       }
 
       if (footer) footer.innerHTML = footerHTML;
-    
     }
 
     function init() {
