@@ -1,284 +1,258 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Omikuji</title>
-  <link rel="icon" href="icon.svg" type="image/svg+xml" />
-  <style>
-    *, *::before, *::after {
-      box-sizing: border-box;
-    }
-    html, body {
-      margin: 0; padding: 0;
-      font-family: 'Inter', 'Segoe UI', 'Hiragino Kaku Gothic ProN', sans-serif;
-      background: linear-gradient(to bottom, #ffcf91 0%, #a96bf8 100%);
-      min-height: 100vh;
-      color: #333;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem 1rem;
-      text-align: center;
-    }
-    h1 {
-      font-size: 2rem;
-      color: #f0f0f0;
-      text-shadow: 0 0 8px rgba(0,0,0,0.7);
-      margin-bottom: 2rem;
-    }
-    button {
-      background: rgba(20, 20, 20, 0.15);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      color: #ddd;
-      border: none;
-      padding: 1rem 2rem;
-      border-radius: 16px;
-      font-size: 1.25rem;
-      font-weight: 600;
-      cursor: pointer;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.35);
-      transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    button:hover:not(:disabled) {
-      background: rgba(30, 30, 30, 0.3);
-      transform: translateY(-4px);
-      box-shadow: 0 6px 18px rgba(0,0,0,0.5);
-    }
-    button:disabled {
-      cursor: not-allowed;
-      opacity: 0.6;
-    }
-    #countdown-timer {
-      margin-top: 1rem;
-      color: #fff8dd;
-      font-size: 1rem;
-      font-weight: 600;
-      user-select: none;
-    }
-    #result {
-      margin-top: 2rem;
-      max-width: 400px;
-      width: 90vw;
-      font-size: 1.5rem;
-      line-height: 1.5;
-      user-select: none;
-      text-align: center;
-      background: transparent;
-      box-shadow: none;
-      border-radius: 16px;
-      padding: 0;
-      color: transparent;
-      transition: all 0.3s ease;
-    }
-    #result.visible {
-      background: rgba(20,20,20,0.15);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      color: #fff8dd;
-      padding: 1.5rem 2rem;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.6);
-    }
-    .kanji {
-      font-weight: bold;
-      font-size: 2.4rem;
-      margin-bottom: 0.5rem;
-    }
-    .comment {
-      font-style: italic;
-      font-size: 1.1rem;
-      margin-bottom: 0.5rem;
-    }
-    .timestamp {
-      font-size: 0.85rem;
-      color: #ccc;
-      user-select: none;
-    }
-    footer#footer-copy {
-      margin-top: 4rem;
-      font-size: 0.9rem;
-      color: #ccc;
-      user-select: none;
-    }
-    a.link {
-      color: #ccc;
-      text-decoration: none;
-    }
-    a.link:hover, a.link:focus {
-      text-decoration: underline;
-    }
-    @media (max-width: 480px) {
-      h1 {
-        font-size: 1.5rem;
-        margin-bottom: 1rem;
-      }
-      button {
-        font-size: 1.1rem;
-        padding: 0.8rem 1.5rem;
-        border-radius: 12px;
-      }
-      #result.visible {
-        font-size: 1.2rem;
-        padding: 1rem 1.2rem;
-      }
-      .kanji {
-        font-size: 1.8rem;
-      }
-      #countdown-timer {
-        font-size: 0.9rem;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Omikuji HUB</title>
+    <link rel="icon" href="icon-light.svg" type="image/svg+xml">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@200;700&family=Plus+Jakarta+Sans:wght@200;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f8f9ff;
+            --text: #3d444a;
+            --accent: #9eabbd;
+            --glass: rgba(255, 255, 255, 0.85);
+            --font-jp: 'Noto Serif JP', serif;
+            --font-en: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: var(--font-jp);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-image: 
+                radial-gradient(circle at 10% 20%, #e0eaff 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, #fff0e0 0%, transparent 40%);
+            padding: clamp(20px, 5vw, 60px);
+            overflow-x: hidden;
+            line-height: 1.8;
+        }
+
+        .hub-wrapper {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            gap: clamp(60px, 12vh, 120px);
+            flex: 1;
+            justify-content: center;
+            margin-bottom: 60px;
+        }
+
+        header {
+            width: 100%;
+        }
+
+        .label-top {
+            font-family: var(--font-en);
+            font-size: 0.75rem;
+            letter-spacing: 0.8em;
+            color: var(--accent);
+            margin-bottom: clamp(15px, 3vw, 30px);
+            display: block;
+            text-transform: uppercase;
+            font-weight: 800;
+        }
+
+        .title {
+            font-family: var(--font-en);
+            font-size: clamp(2.2rem, 10vw, 5.5rem);
+            font-weight: 200;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .title span:nth-child(2) {
+            margin-left: clamp(20px, 8vw, 80px);
+            color: var(--accent);
+            font-style: italic;
+        }
+
+        .title span:nth-child(3) {
+            margin-left: clamp(40px, 16vw, 160px);
+        }
+
+        .nav-container {
+            display: flex;
+            flex-direction: column;
+            gap: clamp(30px, 6vw, 50px);
+            width: 100%;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: flex-start;
+            text-decoration: none;
+            color: var(--text);
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            width: 100%;
+            max-width: 650px;
+        }
+
+        @media (min-width: 769px) {
+            .nav-item.offset {
+                align-self: flex-end;
+            }
+        }
+
+        .card-num {
+            font-family: var(--font-en);
+            font-size: clamp(0.7rem, 2vw, 0.9rem);
+            font-weight: 800;
+            color: var(--accent);
+            margin-right: clamp(10px, 3vw, 30px);
+            margin-top: clamp(10px, 2vw, 15px);
+        }
+
+        .card-content {
+            background: var(--glass);
+            padding: clamp(25px, 5vw, 50px);
+            border-radius: 0 40px 40px 40px;
+            border: 1px solid rgba(255, 255, 255, 1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 15px 35px rgba(61, 68, 74, 0.05);
+            width: 100%;
+            transition: all 0.4s ease;
+        }
+
+        .nav-item:hover {
+            transform: scale(1.02) translateY(-10px);
+        }
+
+        .nav-item:hover .card-content {
+            background: #ffffff;
+            box-shadow: 0 30px 60px rgba(158, 171, 189, 0.2);
+            border-color: var(--accent);
+        }
+
+        .card-content h3 {
+            font-size: clamp(1.4rem, 4vw, 2.2rem);
+            font-weight: 700;
+            margin-bottom: 15px;
+            line-height: 1.2;
+        }
+
+        .card-content p {
+            font-size: clamp(0.85rem, 1.5vw, 0.95rem);
+            opacity: 0.8;
+        }
+
+        footer {
+            width: 100%;
+            text-align: center;
+            padding: 40px 20px;
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            color: var(--accent);
+            font-family: var(--font-en);
+            border-top: 1px solid rgba(158, 171, 189, 0.2);
+            margin-top: auto;
+        }
+
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.3s;
+        }
+
+        footer a:hover {
+            border-color: var(--accent);
+        }
+
+        @media (max-width: 768px) {
+            .hub-wrapper {
+                gap: 60px;
+            }
+            .title span:nth-child(2) {
+                margin-left: 15px;
+            }
+            .title span:nth-child(3) {
+                margin-left: 30px;
+            }
+            .card-content {
+                border-radius: 0 25px 25px 25px;
+            }
+        }
+    </style>
 </head>
 <body>
 
-<h1>おみくじを引く / Draw a Fortune</h1>
-<button id="omikuji-button" onclick="drawOmikuji()">おみくじを引く / Draw</button>
-<div id="countdown-timer" aria-live="polite"></div>
-<div id="result" aria-live="polite"></div>
+    <div class="hub-wrapper">
+        <header>
+            <span class="label-top">Select Omikuji Version</span>
+            <h1 class="title">
+                <span>Omikuji</span>
+                <span>Selector</span>
+                <span>HUB</span>
+            </h1>
+        </header>
 
-<footer id="footer-copy"></footer>
+        <nav class="nav-container">
+            <a href="/omikuji/V1/index.html" class="nav-item">
+                <span class="card-num">01</span>
+                <div class="card-content">
+                    <h3>v1<br>御神籤(おみくじ) / Omikuji</h3>
+                    <p>
+                        <strong>Classic</strong><br>
+                        今までのVersion
+                    </p>
+                </div>
+            </a>
 
-<script>
-  const STORAGE_KEY = "omikuji_result";
-  const API_MAIN = "https://api.hamusata.f5.si/api/omikuji";
-  const API_BACKUP = "https://omikuji-api.hamusata.workers.dev/api/omikuji";
-  const WAIT_SECONDS = 60; // ボタン無効時間（秒）
+            <a href="/omikuji/V2/index.html" class="nav-item offset">
+                <span class="card-num">02</span>
+                <div class="card-content">
+                    <h3>v2<br>御神籤(おみくじ) / Omikuji</h3>
+                    <p>
+                        <strong>NEW Version</strong><br>
+                        御神籤(おみくじ) / Omikuji コメントやUI 等 諸々 変更Version
+                    </p>
+                </div>
+            </a>
+        </nav>
+    </div>
 
-  const resultBox = document.getElementById("result");
-  const timerBox = document.getElementById("countdown-timer");
-  const button = document.getElementById("omikuji-button");
+    <footer>
+        <div id="footer-copy"></div>
+    </footer>
 
-  let countdownInterval;
+    <script>
+        (function() {
+            const baseYear = 2025;
+            const currentYear = new Date().getFullYear();
+            const hostname = window.location.hostname;
+            const footerElement = document.getElementById("footer-copy");
 
-  // 時間フォーマット関数 (JST)
-  function formatJST(dateInput) {
-    const date = new Date(dateInput);
-    return date.toLocaleString('ja-JP', {
-      year: 'numeric', month: '2-digit', day: '2-digit',
-      hour: '2-digit', minute: '2-digit', second: '2-digit',
-      timeZone: 'Asia/Tokyo'
-    });
-  }
+            let copyrightContent = "";
+            const yearDisplay = currentYear > baseYear ? `${baseYear}–${currentYear}` : baseYear;
 
-  function showResult(result, comment, timestamp) {
-    resultBox.innerHTML = `
-      <div class="kanji">${result}</div>
-      <div class="comment">${comment}</div>
-      <div class="timestamp">更新時間 (JST): ${timestamp}</div>
-    `;
-    resultBox.classList.add("visible");
-  }
+            if (hostname === "hamuzon.github.io") {
+                copyrightContent = `&copy; ${yearDisplay} <a href="https://hamuzon.github.io" target="_blank" rel="noopener noreferrer">@hamuzon</a>`;
+            } else if (hostname.includes("hamusata.f5.si")) {
+                copyrightContent = `&copy; ${yearDisplay} <a href="https://hamusata.f5.si" target="_blank" rel="noopener noreferrer">@hamusata</a>`;
+            } else {
+                copyrightContent = `&copy; ${yearDisplay} おみくじ / Omikuji`;
+            }
 
-  function updateCountdown(seconds) {
-    const remainMin = Math.floor(seconds / 60);
-    const remainSec = seconds % 60;
-    timerBox.textContent = `あと${remainMin}分${remainSec}秒待ってね / Please wait ${remainMin} min ${remainSec} sec`;
-  }
-
-  function clearCountdown() {
-    clearInterval(countdownInterval);
-    timerBox.textContent = "";
-    button.disabled = false;
-  }
-
-  function startCountdown(seconds) {
-    button.disabled = true;
-    updateCountdown(seconds);
-
-    countdownInterval = setInterval(() => {
-      seconds--;
-      if (seconds <= 0) {
-        clearCountdown();
-      } else {
-        updateCountdown(seconds);
-      }
-    }, 1000);
-  }
-
-  function loadStoredResult() {
-    const data = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if (!data) return false;
-
-    const now = Date.now();
-    const elapsed = now - data.timestamp;
-
-    if (elapsed < 5 * 60 * 1000) { // 5分以内は結果表示
-      showResult(data.result, data.comment, data.timestampJST);
-
-      if (elapsed < WAIT_SECONDS * 1000) {
-        startCountdown(WAIT_SECONDS - Math.floor(elapsed / 1000));
-      } else {
-        button.disabled = false;
-      }
-      return true;
-    } else {
-      localStorage.removeItem(STORAGE_KEY);
-      return false;
-    }
-  }
-
-  async function drawOmikuji() {
-    if (button.disabled) return;
-
-    button.disabled = true;
-    timerBox.textContent = "おみくじ取得中...";
-    resultBox.classList.remove("visible");
-    resultBox.textContent = "";
-
-    try {
-      let res = await fetch(API_MAIN);
-      if (!res.ok) res = await fetch(API_BACKUP);
-      const data = await res.json();
-
-      // JSTに変換
-      const formattedTime = formatJST(data.timestamp);
-
-      showResult(data.result, data.comment, formattedTime);
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        result: data.result,
-        comment: data.comment,
-        timestamp: Date.now(),
-        timestampJST: formattedTime
-      }));
-
-      startCountdown(WAIT_SECONDS);
-    } catch (e) {
-      resultBox.textContent = "通信エラーが発生しました。後でもう一度試してください。\nNetwork error occurred. Please try again later.";
-      resultBox.classList.add("visible");
-      button.disabled = false;
-      timerBox.textContent = "";
-    }
-  }
-
-  window.addEventListener('load', () => {
-    loadStoredResult();
-  });
-
-  (function() {
-    const baseYear = 2025;
-    const currentYear = new Date().getFullYear();
-    const hostname = location.hostname;
-    const footer = document.getElementById("footer-copy");
-
-    let footerHTML = "";
-    if (hostname === "hamuzon.github.io") {
-      footerHTML = `&copy; ${baseYear}${currentYear > baseYear ? "–" + currentYear : ""} <a class="link" href="https://hamuzon.github.io" target="_blank" rel="noopener noreferrer">@hamuzon</a>`;
-    } else if (hostname.includes("omikuji.hamusata.f5.si")) {
-      footerHTML = `&copy; ${baseYear}${currentYear > baseYear ? "–" + currentYear : ""} <a class="link" href="https://home.hamusata.f5.si" target="_blank" rel="noopener noreferrer">@hamusata</a>`;
-    } else {
-      footerHTML = `&copy; ${baseYear}${currentYear > baseYear ? "–" + currentYear : ""} おみくじ / Omikuji`;
-    }
-
-    if (footer) {
-      footer.innerHTML = footerHTML;
-    }
-  })();
-</script>
+            if (footerElement) {
+                footerElement.innerHTML = copyrightContent;
+            }
+        })();
+    </script>
 
 </body>
 </html>
