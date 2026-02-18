@@ -1,7 +1,9 @@
 # Omikuji Webアプリ  
 おみくじを引けるWebアプリです。  
 A simple web app to draw fortunes (Omikuji).
+
 [https://hamuzon.github.io/omikuji/](https://hamuzon.github.io/omikuji/)
+
 [Version1](https://hamuzon.github.io/omikuji/V1/) 
 [https://hamuzon.github.io/omikuji/V1/](https://hamuzon.github.io/omikuji/V1/)
 
