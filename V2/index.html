@@ -11,7 +11,7 @@
 
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
 
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=Noto+Sans+JP:wght@400;900&family=Noto+Color+Emoji&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=Noto+Sans+JP:wght@400;900&display=swap" rel="stylesheet">
 
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
@@ -28,8 +28,6 @@
       --glass-base: rgba(255, 255, 255, 0.15);
       --glass-border: rgba(255, 255, 255, 0.35);
       --shadow-soft: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-      --font-ui: 'Inter', 'Noto Sans JP', sans-serif;
-      --font-emoji: 'Noto Color Emoji', 'Apple Color Emoji', 'Segoe UI Emoji', 'Twemoji Mozilla', 'EmojiOne Color', emoji, sans-serif;
     }
 
     html,
@@ -38,7 +36,7 @@
       padding: 0;
       width: 100%;
       min-height: 100%;
-      font-family: var(--font-ui), var(--font-emoji);
+      font-family: 'Inter','Noto Sans JP','Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif;
       background: var(--bg-morning);
       background-size: 400% 400%;
       background-attachment: fixed;
@@ -155,8 +153,6 @@
       line-height: 1.1;
       margin: 0;
       filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.25));
-      font-family: var(--font-ui), var(--font-emoji);
-      font-variant-emoji: emoji;
     }
 
     .comment {
@@ -166,8 +162,6 @@
       max-width: 90%;
       text-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
       word-break: break-word;
-      font-family: var(--font-ui), var(--font-emoji);
-      font-variant-emoji: emoji;
     }
 
     .timestamp {
