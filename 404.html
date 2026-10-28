@@ -126,31 +126,18 @@ a.back:hover {
   <a id="backLink" class="back" href="/">トップページへ戻る</a>  <script>
     (() => {
       const path = window.location.pathname;
-      const lowerPath = path.toLowerCase();
-
-      // v1、v2 などの小文字URLを V1、V2 などの大文字URLへリダイレクト
-      const match = path.match(/\/(v\d+)(\/.*)?$/i);
+      const match = path.match(/\/(v1|v2)(\/.*)?$/i);
 
       if (match && match[1] !== match[1].toUpperCase()) {
-        const version = match[1].toUpperCase();
-        const suffix = match[2] || '';
         const target = path.replace(
-          /\/v\d+(\/.*)?$/i,
-          `/${version}${suffix}`
+          /\/(v1|v2)(\/.*)?$/i,
+          (_, version, suffix = '') =>
+            `/${version.toUpperCase()}${suffix}`
         );
 
         window.location.replace(
           target + window.location.search + window.location.hash
         );
-        return;
-      }
-
-      // README、LICENSE へのアクセスをトップページへリダイレクト
-      if (
-        lowerPath.includes('readme') ||
-        lowerPath.includes('license')
-      ) {
-        window.location.replace('./');
       }
     })();
 
