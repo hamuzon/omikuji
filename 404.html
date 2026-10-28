@@ -128,6 +128,7 @@ a.back:hover {
       const path = window.location.pathname;
       const match = path.match(/\/(v1|v2)(\/.*)?$/i);
 
+      // v1、v2 の小文字URLだけを V1、V2 へリダイレクト
       if (match && match[1] !== match[1].toUpperCase()) {
         const target = path.replace(
           /\/(v1|v2)(\/.*)?$/i,
