@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="ja">
+<!DOCTYPE html><html lang="ja">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -13,111 +12,110 @@
       --glass: rgba(255, 255, 255, 0.85);
       --font-jp: 'Noto Serif JP', serif;
       --font-en: 'Plus Jakarta Sans', sans-serif;
-    }
+    }* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+body {
+  font-family: var(--font-jp);
+  background-color: var(--bg);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  text-align: center;
+  padding: 2rem;
+  background-image:
+    radial-gradient(circle at 10% 20%, #e0eaff 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, #fff0e0 0%, transparent 40%);
+  line-height: 1.8;
+}
 
-    body {
-      font-family: var(--font-jp);
-      background-color: var(--bg);
-      color: var(--text);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      text-align: center;
-      padding: 2rem;
-      background-image:
-        radial-gradient(circle at 10% 20%, #e0eaff 0%, transparent 40%),
-        radial-gradient(circle at 90% 80%, #fff0e0 0%, transparent 40%);
-      line-height: 1.8;
-    }
+h1 {
+  font-family: var(--font-en);
+  font-size: 5rem;
+  margin-bottom: 0.2em;
+  letter-spacing: 0.15em;
+  color: var(--accent);
+  font-weight: 800;
+}
 
-    h1 {
-      font-family: var(--font-en);
-      font-size: 5rem;
-      margin-bottom: 0.2em;
-      letter-spacing: 0.15em;
-      color: var(--accent);
-      font-weight: 800;
-    }
+.title-en {
+  font-family: var(--font-en);
+  font-size: clamp(2rem, 7vw, 4rem);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--text);
+  line-height: 1.2;
+}
 
-    .title-en {
-      font-family: var(--font-en);
-      font-size: clamp(2rem, 7vw, 4rem);
-      font-weight: 800;
-      letter-spacing: 0.08em;
-      color: var(--text);
-      line-height: 1.2;
-    }
+.title-ja {
+  font-family: var(--font-jp);
+  font-size: clamp(1.8rem, 6.2vw, 3.2rem);
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1.3;
+  margin-top: 0.15em;
+  margin-bottom: 0.35em;
+}
 
-    .title-ja {
-      font-family: var(--font-jp);
-      font-size: clamp(1.8rem, 6.2vw, 3.2rem);
-      font-weight: 700;
-      color: var(--accent);
-      line-height: 1.3;
-      margin-top: 0.15em;
-      margin-bottom: 0.35em;
-    }
+p {
+  font-size: 1.2rem;
+  margin: 0.3em 0;
+  color: var(--text);
+}
 
-    p {
-      font-size: 1.2rem;
-      margin: 0.3em 0;
-      color: var(--text);
-    }
+.subtext {
+  font-size: 1rem;
+  color: var(--accent);
+  margin-top: 0.5em;
+  opacity: 0.9;
+  font-family: var(--font-en);
+}
 
-    .subtext {
-      font-size: 1rem;
-      color: var(--accent);
-      margin-top: 0.5em;
-      opacity: 0.9;
-      font-family: var(--font-en);
-    }
+a.back {
+  margin-top: 2rem;
+  padding: 0.75em 2em;
+  background: var(--glass);
+  color: var(--text);
+  text-decoration: none;
+  border-radius: 12px;
+  font-weight: bold;
+  border: 1px solid rgba(255, 255, 255, 1);
+  box-shadow: 0 15px 35px rgba(61, 68, 74, 0.08);
+  transition: all 0.3s ease;
+  font-family: var(--font-jp);
+}
 
-    a.back {
-      margin-top: 2rem;
-      padding: 0.75em 2em;
-      background: var(--glass);
-      color: var(--text);
-      text-decoration: none;
-      border-radius: 12px;
-      font-weight: bold;
-      border: 1px solid rgba(255, 255, 255, 1);
-      box-shadow: 0 15px 35px rgba(61, 68, 74, 0.08);
-      transition: all 0.3s ease;
-      font-family: var(--font-jp);
-    }
+a.back:hover {
+  background: #ffffff;
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 20px 45px rgba(158, 171, 189, 0.2);
+}
 
-    a.back:hover {
-      background: #ffffff;
-      border-color: var(--accent);
-      transform: translateY(-2px);
-      box-shadow: 0 20px 45px rgba(158, 171, 189, 0.2);
-    }
+@media (max-width: 600px) {
+  h1 {
+    font-size: 3.5rem;
+  }
 
-    @media (max-width: 600px) {
-      h1 {
-        font-size: 3.5rem;
-      }
+  .title-en {
+    font-size: 2rem;
+  }
 
-      .title-en {
-        font-size: 2rem;
-      }
+  .title-ja {
+    font-size: 1.7rem;
+  }
 
-      .title-ja {
-        font-size: 1.7rem;
-      }
+  p {
+    font-size: 1rem;
+  }
+}
 
-      p {
-        font-size: 1rem;
-      }
-    }
   </style>
 </head>
 <body>
@@ -125,22 +123,42 @@
   <p class="title-en">PAGE NOT FOUND</p>
   <p class="title-ja">ページが見つかりません</p>
   <p class="subtext">Sorry, the page you’re looking for could not be found. / お探しのページは見つかりませんでした。</p>
-  <a id="backLink" class="back" href="/">トップページへ戻る</a>
+  <a id="backLink" class="back" href="/">トップページへ戻る</a>  <script>
+    (() => {
+      const path = window.location.pathname;
+      const lowerPath = path.toLowerCase();
 
-  <script>
-    // README/LICENSE へのアクセス（大文字小文字問わず）を判定してリダイレクト
-    (function() {
-      const path = window.location.pathname.toLowerCase();
-      if (path.includes('readme') || path.includes('license')) {
+      // v1、v2 などの小文字URLを V1、V2 などの大文字URLへリダイレクト
+      const match = path.match(/\/(v\d+)(\/.*)?$/i);
+
+      if (match && match[1] !== match[1].toUpperCase()) {
+        const version = match[1].toUpperCase();
+        const suffix = match[2] || '';
+        const target = path.replace(
+          /\/v\d+(\/.*)?$/i,
+          `/${version}${suffix}`
+        );
+
+        window.location.replace(
+          target + window.location.search + window.location.hash
+        );
+        return;
+      }
+
+      // README、LICENSE へのアクセスをトップページへリダイレクト
+      if (
+        lowerPath.includes('readme') ||
+        lowerPath.includes('license')
+      ) {
         window.location.replace('./');
       }
     })();
 
     document.addEventListener('DOMContentLoaded', () => {
       if (location.hostname === 'hamuzon.github.io') {
-        document.getElementById('backLink').href = 'https://hamuzon.github.io/omikuji/';
+        document.getElementById('backLink').href =
+          'https://hamuzon.github.io/omikuji/';
       }
     });
-  </script>
-</body>
+  </script></body>
 </html>
