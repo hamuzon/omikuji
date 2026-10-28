@@ -126,9 +126,20 @@ a.back:hover {
   <a id="backLink" class="back" href="/">トップページへ戻る</a>  <script>
     (() => {
       const path = window.location.pathname;
+      const lowerPath = path.toLowerCase();
+
+      // README・LICENSE を含むURLをトップページへリダイレクト
+      if (
+        lowerPath.includes('readme') ||
+        lowerPath.includes('license')
+      ) {
+        window.location.replace('/');
+        return;
+      }
+
+      // v1・v2 の小文字URLを V1・V2 へリダイレクト
       const match = path.match(/\/(v1|v2)(\/.*)?$/i);
 
-      // v1、v2 の小文字URLだけを V1、V2 へリダイレクト
       if (match && match[1] !== match[1].toUpperCase()) {
         const target = path.replace(
           /\/(v1|v2)(\/.*)?$/i,
